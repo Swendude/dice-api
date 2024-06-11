@@ -29,7 +29,7 @@ app.get("/roll", (req, res: express.Response<result | problem>) => {
   if (!parsedQuery.success) {
     res
       .status(400)
-      .send({ message: "Error in query", error: parsedQuery.error.flatten });
+      .send({ message: "Error in query", error: parsedQuery.error.flatten() });
   } else {
     res.send([
       ...new Array(parsedQuery.data.amount).fill(0).map((i) => {
