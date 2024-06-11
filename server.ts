@@ -1,0 +1,44 @@
+import express from "express";
+import { z } from "zod";
+
+const app = express();
+const port = process.env.PORT || 3000;
+
+const DiceValidator = z.object({
+  face: z.coerce
+    .number()
+    .pipe(
+      z.union([
+        z.literal(100),
+        z.literal(20),
+        z.literal(12),
+        z.literal(10),
+        z.literal(8),
+        z.literal(6),
+        z.literal(4),
+      ])
+    ),
+  amount: z.coerce.number().gt(0),
+});
+
+type result = number[];
+type problem = { message: string; error?: any };
+
+app.get("/roll", (req, res: express.Response<result | problem>) => {
+  const parsedQuery = DiceValidator.safeParse(req.query);
+  if (!parsedQuery.success) {
+    res
+      .status(400)
+      .send({ message: "Error in query", error: parsedQuery.error.flatten });
+  } else {
+    res.send([
+      ...new Array(parsedQuery.data.amount).fill(0).map((i) => {
+        return Math.ceil(Math.random() * parsedQuery.data.face);
+      }),
+    ]);
+  }
+});
+
+app.listen(port, () => {
+  console.log(`Dice Roll app listening on port ${port}`);
+});
