@@ -1,5 +1,6 @@
 import express from "express";
 import { z } from "zod";
+import { PrismaClient, Prisma } from "@prisma/client";
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -24,20 +25,38 @@ const DiceValidator = z.object({
 type result = number[];
 type problem = { message: string; error?: any };
 
-app.get("/roll", (req, res: express.Response<result | problem>) => {
+const prisma = new PrismaClient();
+
+app.get("/roll", async (req, res: express.Response<result | problem>) => {
   const parsedQuery = DiceValidator.safeParse(req.query);
   if (!parsedQuery.success) {
     res
       .status(400)
       .send({ message: "Error in query", error: parsedQuery.error.flatten() });
   } else {
-    res.send([
+    const result = [
       ...new Array(parsedQuery.data.amount).fill(0).map((i) => {
         return Math.ceil(Math.random() * parsedQuery.data.face);
       }),
-    ]);
+    ];
+    await prisma.roll.create({
+      data: {
+        result: JSON.stringify(result),
+      },
+    });
+    res.send(result);
   }
 });
+
+app.get(
+  "/rolls",
+  async (req, res: express.Response<Prisma.RollGetPayload<{}>[]>) => {
+    const lastRolls = await prisma.roll.findMany({
+      take: 20,
+    });
+    res.send(lastRolls);
+  }
+);
 
 app.listen(port, () => {
   console.log(`Dice Roll app listening on port ${port}`);
