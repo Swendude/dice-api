@@ -4,10 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "tsc",
-    "start": "node ./build/server.js",
-    "dev": "tsx watch server.ts",
-    "migrate": "prisma db push"
+    "build": "prisma generate && tsc",
+    "start": "prisma db push --skip-generate && node ./build/server.js",
+    "dev": "tsx watch server.ts"
   },
   "keywords": [],
   "author": "",

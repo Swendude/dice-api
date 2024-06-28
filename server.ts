@@ -58,6 +58,8 @@ app.get(
   }
 );
 
+app.get("/hi", (req, res) => res.send("Hello!"));
+
 app.listen(port, () => {
   console.log(`Dice Roll app listening on port ${port}`);
 });
